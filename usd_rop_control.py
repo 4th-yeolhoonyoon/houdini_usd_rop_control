@@ -4,6 +4,10 @@ import re
 
 
 def create_node():
+    '''
+
+    :return:
+    '''
     root = hou.node('/stage/usd_extensions')
     children_node = root.children()
 
@@ -16,19 +20,24 @@ def create_node():
     print(dirname)
     print(basename)
 
+    # 여기서 정규표현식을 사용하면, rop_node를 리스트 형식으로 받으면 안될 거 같다
     p = re.compile("v\d\d\d")
     m = p.search(basename)
     if m:
         # 버전 중복 체크 및 버전 업할 건지 확인하는 메소드
+        save_usd_file()
         pass
     else:
-        # 에러 체크 함수 버전을 추가하라는 방식 or version 1로 만들기
+        # 에러 체크 함수 버전을 추가하는 방식 or 버전 1로 만들기
+        no_version_path()
         pass
 
 
-def save_usd_file(rop_nodes):
-    rop_nodes.pop()
+def save_usd_file():
+    '''
 
+    :return:
+    '''
     message = ('USD file with that version already exists. Do you want to overwrite? '
                '\n If you clicked \'No\' button, it sets a version number(+1)')
     dd = hou.ui.displayMessage(message, buttons=("Yes", "No", "Quit"))
@@ -39,6 +48,22 @@ def save_usd_file(rop_nodes):
         print('sorry')
     elif dd == 2:
         print('happy')
+
+
+def no_version_path():
+    '''
+    
+    :return:
+    '''
+    message = ('There is no version in path, Do you want to create new version?'
+               '\n If you don\'t want, add USD file version')
+
+    bb = hou.ui.displayMessage(message, buttons=("Yes", "Quit"))
+
+    if bb == 0:
+        print('hello')
+    elif bb == 1:
+        print('end')
 
 
 create_node()
