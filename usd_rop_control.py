@@ -6,9 +6,10 @@ import re
 class UsdRopControl:
     def __init__(self):
         self.root = None
-        self.children_node = None
-        self.output_path = None
-        self.version_info = None
+        self.children_node = list
+        self.output_path = str
+        self.version_info = str
+        self.last_verion = int
 
     def check_rop_nodes(self):
         '''
@@ -42,16 +43,15 @@ class UsdRopControl:
         self.version_info = re.search("v\d\d\d", basename)
 
         if self.version_info:
-            print(self.version_info.group())
             # 버전 중복 체크 및 버전 업할 건지 확인하는 메소드
             if os.path.isfile(self.output_path):
                 message = (f'{rop_node}'
                            f'\n {self.output_path} \n'
                            '\n USD file with that version already exists. Do you want to overwrite? '
-                           '\n If you clicked \'No\' button, it sets a version number(+1)')
+                           '\n If you clicked \'No\' button, it sets a last version +1')
                 message_box = hou.ui.displayMessage(message, buttons=("Yes", "No", "Quit"))
                 if message_box == 0:
-                    self.export_overwrite_usd()
+                    rop_node.parm('execute').pressButton()
                 elif message_box == 1:
                     self.export_version_up_usd()
                 elif message_box == 2:
@@ -84,17 +84,28 @@ class UsdRopControl:
         self.result_check()
         self.process_rop_nodes(rop_nodes)
 
-
     def export_version_up_usd(self):
+        '''
+        가장 최신 버전 찾아서 해당 버전보다 +1 해서 export하는 메소드
+        :return:
+        '''
         print('export_version_up_usd method')
-
-    def export_overwrite_usd(self):
-        print('export_overwrite_usd method')
+        version_num = self.version_info.group()[1:]
+        self.last_verion = int(version_num)
+        print('yeolhoon :', self.version_num)
 
     def export_new_usd(self):
+        '''
+        version 1 로 첫 export 해주는 메소드
+        :return:
+        '''
         print('export_new_usd method')
 
     def result_check(self):
+        '''
+        결과 한번 더 체크해주는 메소드
+        :return:
+        '''
         print('result check')
 
 
