@@ -33,8 +33,8 @@ def process_rop_nodes(rop_nodes):
     print(basename)
 
     # 여기서 정규표현식을 사용하면, rop_node를 리스트 형식으로 받으면 안될 거 같다
-    p = re.compile("v\d\d\d")
-    m = p.search(basename)
+    m = re.search("v\d\d\d", basename)
+    print(m)
 
     if m:
         # 버전 중복 체크 및 버전 업할 건지 확인하는 메소드
@@ -50,7 +50,7 @@ def process_rop_nodes(rop_nodes):
         elif dd == 1:
             print('sorry')
         elif dd == 2:
-            print('happy')
+            pass
 
         process_rop_nodes(rop_nodes)
 
@@ -66,7 +66,7 @@ def process_rop_nodes(rop_nodes):
         if bb == 0:
             print('hello')
         elif bb == 1:
-            print('end')
+            pass
 
         process_rop_nodes(rop_nodes)
 
