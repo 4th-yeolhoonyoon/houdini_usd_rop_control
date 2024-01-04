@@ -9,7 +9,7 @@ class UsdRopControl:
         self.children_node = list
         self.output_path = str
         self.version_info = str
-        self.last_verion = int
+        self.last_version = int
 
     def check_rop_nodes(self):
         '''
@@ -90,7 +90,8 @@ class UsdRopControl:
 
     def set_version_up_usd(self):
         '''
-        가장 최신 버전 찾아서 해당 버전보다 +1 해서 path를 리턴한다
+        중복되면 해당 버전보다 +1 해서 path를 리턴한다
+        버전 업을 한 파일도 존재하면 최신 버전 다음 버전으로 리턴한다.
         :return: next_path
         '''
         print('export_version_up_usd method')
@@ -102,6 +103,8 @@ class UsdRopControl:
         version_padding = str(self.last_verion).rjust(3, '0')
         update_filename = filename.split(version_num)[0] + version_padding + ('.' + usd_extension)
         next_path = os.path.join(self.dirname, update_filename)
+        if os.path.isfile(next_path):
+            pass
         return next_path
 
     def set_new_usd(self):
@@ -111,15 +114,16 @@ class UsdRopControl:
         '''
         print('export_new_usd method')
 
-    def get_last_version_usd(self, filename, path):
+    def get_last_version_usd(self, path):
         '''
 
         :param filename:
         :param path:
         :return:
         '''
-        file_list = os.listdir(path)
-        pass
+        filename, usd_extension = self.basename.split('.')
+        file_list = [file for file in os.listdir(path) if file.endswith('.' + usd_extension)]
+        return file_list
 
     def result_check(self):
         '''
