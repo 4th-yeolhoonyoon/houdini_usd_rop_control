@@ -80,7 +80,9 @@ class UsdRopControl:
                        '\n If you don\'t want, add USD file version')
             message_box = hou.ui.displayMessage(message, buttons=("Yes", "Quit"))
             if message_box == 0:
-                self.set_new_usd()
+                rop_node.parm('lopoutput').set(self.set_new_usd())
+
+                rop_node.parm('execute').pressButton()
             elif message_box == 1:
                 pass
         # 결과체크
@@ -95,14 +97,14 @@ class UsdRopControl:
         """
         print('export_version_up_usd method')
         version_num = self.version_info.group()[1:]
-        next_verion = int(version_num) + 1
+        next_version = int(version_num) + 1
         filename, usd_extension = self.basename.split('.')
-        version_padding = str(next_verion).rjust(3, '0')
+        version_padding = str(next_version).rjust(3, '0')
         filename_v = filename.split(version_num)[0]
         update_filename = filename_v + version_padding + ('.' + usd_extension)
         next_path = os.path.join(self.dirname, update_filename)
-        if os.path.isfile(next_path):
-            version_padding = str(self.get_last_version_usd(filename_v)).rjust(3, '0')
+        if os.path.isfile(next_path) or next_version > self.get_last_version_usd(filename_v):
+            version_padding = str(self.get_last_version_usd(filename_v) + 1).rjust(3, '0')
             update_filename = filename.split(version_num)[0] + version_padding + ('.' + usd_extension)
             next_path = os.path.join(self.dirname, update_filename)
 
@@ -112,21 +114,27 @@ class UsdRopControl:
     def set_new_usd(self):
         """
         version 1 로 첫 export 해주는 메소드
+        version 1로 했을때 이미 있으면 덮어씌우는 이슈 해결해야함!!!!!!!!!
 
-        :return:
+        :return:new_usd_path
         """
         print('export_new_usd method')
+        new_filename = self.basename.split('.')[0] + '_v001.' + self.basename.split('.')[-1]
+        new_usd_path = os.path.join(self.dirname, new_filename)
+
+        print('new_usd_path :', new_usd_path)
+        return new_usd_path
 
     def get_last_version_usd(self, start_name):
         """
-
+        경로 내 가장 최신 버전을 리턴한다
         :param start_name: str
-        :return:
+        :return: int
         """
         filename, usd_extension = self.basename.split('.')
         files = os.listdir(self.dirname)
         file_list = [re.search("v\d\d\d", file).group() for file in files if file.startswith(start_name)]
-        self.last_version = int(sorted(file_list).pop()[1:]) + 1
+        self.last_version = int(sorted(file_list).pop()[1:])
         last_ver = self.last_version
         return last_ver
 
