@@ -8,6 +8,7 @@ class UsdRopControl:
         self.root = None
         self.children_node = None
         self.output_path = None
+        self.version_info = None
 
     def check_rop_nodes(self):
         '''
@@ -36,39 +37,53 @@ class UsdRopControl:
 
         rop_node = rop_nodes.pop()
         self.output_path = rop_node.parm('lopoutput').eval()
-        dirname = os.path.dirname(self.output_path)
         basename = os.path.basename(self.output_path)
         # 여기서 정규표현식을 사용하면, rop_node를 리스트 형식으로 받으면 안될 거 같다
-        m = re.search("v\d\d\d", basename)
+        self.version_info = re.search("v\d\d\d", basename)
 
-        if m:
-            print(m.group())
+        if self.version_info:
+            print(self.version_info.group())
             # 버전 중복 체크 및 버전 업할 건지 확인하는 메소드
-            message = (f'{rop_node}'
-                       f'\n {self.output_path} \n'
-                       '\n USD file with that version already exists. Do you want to overwrite? '
-                       '\n If you clicked \'No\' button, it sets a version number(+1)')
-            dd = hou.ui.displayMessage(message, buttons=("Yes", "No", "Quit"))
-            if dd == 0:
-                self.export_overwrite_usd()
-            elif dd == 1:
-                self.export_version_up_usd()
-            elif dd == 2:
-                pass
-            self.process_rop_nodes(rop_nodes)
-
+            if os.path.isfile(self.output_path):
+                message = (f'{rop_node}'
+                           f'\n {self.output_path} \n'
+                           '\n USD file with that version already exists. Do you want to overwrite? '
+                           '\n If you clicked \'No\' button, it sets a version number(+1)')
+                message_box = hou.ui.displayMessage(message, buttons=("Yes", "No", "Quit"))
+                if message_box == 0:
+                    self.export_overwrite_usd()
+                elif message_box == 1:
+                    self.export_version_up_usd()
+                elif message_box == 2:
+                    pass
+            else:
+                # 최신 버전이 3인데 4로 저장하려고 할 경우에 제어가 필요할 것인가.
+                message = (f'{rop_node}'
+                           f'\n {self.output_path} \n'
+                           'Last version is {last version info - add code}, Are you okay?')
+                message_box = hou.ui.displayMessage(message, buttons=("Yes", "No", "Quit"))
+                if message_box == 0:
+                    rop_node.parm('execute').pressButton()
+                elif message_box == 1:
+                    self.export_version_up_usd()
+                elif message_box == 2:
+                    pass
+                # 결과 체크
         else:
             # 에러 체크 함수 버전을 추가하는 방식 or 버전 1로 만들기
             message = (f'{rop_node}'
                        f'\n {self.output_path} \n'
                        '\n There is no version in path, Do you want to create new version?'
                        '\n If you don\'t want, add USD file version')
-            bb = hou.ui.displayMessage(message, buttons=("Yes", "Quit"))
-            if bb == 0:
+            message_box = hou.ui.displayMessage(message, buttons=("Yes", "Quit"))
+            if message_box == 0:
                 self.export_new_usd()
-            elif bb == 1:
+            elif message_box == 1:
                 pass
-            self.process_rop_nodes(rop_nodes)
+
+        self.result_check()
+        self.process_rop_nodes(rop_nodes)
+
 
     def export_version_up_usd(self):
         print('export_version_up_usd method')
@@ -78,6 +93,9 @@ class UsdRopControl:
 
     def export_new_usd(self):
         print('export_new_usd method')
+
+    def result_check(self):
+        print('result check')
 
 
 rop = UsdRopControl()
