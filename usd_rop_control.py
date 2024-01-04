@@ -12,11 +12,11 @@ class UsdRopControl:
         self.last_version = int
 
     def check_rop_nodes(self):
-        '''
+        """
         /stage 경로 내에 usd_rop 노드를 찾도록 구현할 예정
 
         :return: list - list about usd rop nodes
-        '''
+        """
         # rop 노드 찾는 부분 더 넣어야 할듯
         self.root = hou.node('/stage/usd_extensions')
         self.children_node = self.root.children()
@@ -24,14 +24,14 @@ class UsdRopControl:
         return rop_list
 
     def process_rop_nodes(self, rop_nodes):
-        '''
+        """
         USD 버전 체크,
         경로에 버전이 없을 경우에는 1로 시작할 건지, 창을 닫을 건지 선택하도록
         경로에 버전이 있는 경우에는 이미 파일이 있으면 덮어쓸 건지, 버전 업을 할 건지 선택하도록
 
         :param rop_nodes: list
 
-        '''
+        """
         if len(rop_nodes) == 0:
             print('There is no USD rop node')
             return
@@ -72,7 +72,6 @@ class UsdRopControl:
                     rop_node.parm('execute').pressButton()
                 elif message_box == 2:
                     pass
-                # 결과 체크
         else:
             # 에러 체크 함수 버전을 추가하는 방식 or 버전 1로 만들기
             message = (f'{rop_node}'
@@ -84,46 +83,52 @@ class UsdRopControl:
                 self.set_new_usd()
             elif message_box == 1:
                 pass
-
+        # 결과체크
         self.result_check()
         self.process_rop_nodes(rop_nodes)
 
     def set_version_up_usd(self):
-        '''
+        """
         중복되면 해당 버전보다 +1 해서 path를 리턴한다
-        버전 업을 한 파일도 존재하면 최신 버전 다음 버전으로 리턴한다.
+        버전 업을 한 파일도 존재하면 가장 최신 버전 다음 버전 경로로 리턴한다.
         :return: next_path
-        '''
+        """
         print('export_version_up_usd method')
         version_num = self.version_info.group()[1:]
-        self.last_verion = int(version_num) + 1
+        next_verion = int(version_num) + 1
         filename, usd_extension = self.basename.split('.')
-        print('yeolhoon :', version_num)
-        print(filename, usd_extension)
-        version_padding = str(self.last_verion).rjust(3, '0')
-        update_filename = filename.split(version_num)[0] + version_padding + ('.' + usd_extension)
+        version_padding = str(next_verion).rjust(3, '0')
+        filename_v = filename.split(version_num)[0]
+        update_filename = filename_v + version_padding + ('.' + usd_extension)
         next_path = os.path.join(self.dirname, update_filename)
         if os.path.isfile(next_path):
-            pass
+            version_padding = str(self.get_last_version_usd(filename_v)).rjust(3, '0')
+            update_filename = filename.split(version_num)[0] + version_padding + ('.' + usd_extension)
+            next_path = os.path.join(self.dirname, update_filename)
+
+        print('next_path :', next_path)
         return next_path
 
     def set_new_usd(self):
-        '''
+        """
         version 1 로 첫 export 해주는 메소드
+
         :return:
-        '''
+        """
         print('export_new_usd method')
 
-    def get_last_version_usd(self, path):
-        '''
+    def get_last_version_usd(self, start_name):
+        """
 
-        :param filename:
-        :param path:
+        :param start_name: str
         :return:
-        '''
+        """
         filename, usd_extension = self.basename.split('.')
-        file_list = [file for file in os.listdir(path) if file.endswith('.' + usd_extension)]
-        return file_list
+        files = os.listdir(self.dirname)
+        file_list = [re.search("v\d\d\d", file).group() for file in files if file.startswith(start_name)]
+        self.last_version = int(sorted(file_list).pop()[1:]) + 1
+        last_ver = self.last_version
+        return last_ver
 
     def result_check(self):
         '''
