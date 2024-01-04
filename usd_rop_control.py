@@ -38,6 +38,7 @@ class UsdRopControl:
 
         rop_node = rop_nodes.pop()
         self.output_path = rop_node.parm('lopoutput').eval()
+        self.dirname = os.path.dirname(self.output_path)
         self.basename = os.path.basename(self.output_path)
         # 여기서 정규표현식을 사용하면, rop_node를 리스트 형식으로 받으면 안될 거 같다
         self.version_info = re.search("v\d\d\d", self.basename)
@@ -49,11 +50,13 @@ class UsdRopControl:
                            f'\n {self.output_path} \n'
                            '\n USD file with that version already exists. Do you want to overwrite? '
                            '\n If you clicked \'No\' button, it sets a last version +1')
+                hou.ui.setStatusMessage("Select one root Alembic Archive node.")
                 message_box = hou.ui.displayMessage(message, buttons=("Yes", "No", "Quit"))
                 if message_box == 0:
                     rop_node.parm('execute').pressButton()
                 elif message_box == 1:
-                    self.export_version_up_usd()
+                    rop_node.parm('lopoutput').set(self.set_version_up_usd())
+                    rop_node.parm('execute').pressButton()
                 elif message_box == 2:
                     pass
             else:
@@ -65,7 +68,8 @@ class UsdRopControl:
                 if message_box == 0:
                     rop_node.parm('execute').pressButton()
                 elif message_box == 1:
-                    self.export_version_up_usd()
+                    rop_node.parm('lopoutput').set(self.set_version_up_usd())
+                    rop_node.parm('execute').pressButton()
                 elif message_box == 2:
                     pass
                 # 결과 체크
@@ -77,17 +81,17 @@ class UsdRopControl:
                        '\n If you don\'t want, add USD file version')
             message_box = hou.ui.displayMessage(message, buttons=("Yes", "Quit"))
             if message_box == 0:
-                self.export_new_usd()
+                self.set_new_usd()
             elif message_box == 1:
                 pass
 
         self.result_check()
         self.process_rop_nodes(rop_nodes)
 
-    def export_version_up_usd(self):
+    def set_version_up_usd(self):
         '''
-        가장 최신 버전 찾아서 해당 버전보다 +1 해서 export하는 메소드
-        :return:
+        가장 최신 버전 찾아서 해당 버전보다 +1 해서 path를 리턴한다
+        :return: next_path
         '''
         print('export_version_up_usd method')
         version_num = self.version_info.group()[1:]
@@ -97,14 +101,25 @@ class UsdRopControl:
         print(filename, usd_extension)
         version_padding = str(self.last_verion).rjust(3, '0')
         update_filename = filename.split(version_num)[0] + version_padding + ('.' + usd_extension)
-        print(update_filename)
+        next_path = os.path.join(self.dirname, update_filename)
+        return next_path
 
-    def export_new_usd(self):
+    def set_new_usd(self):
         '''
         version 1 로 첫 export 해주는 메소드
         :return:
         '''
         print('export_new_usd method')
+
+    def get_last_version_usd(self, filename, path):
+        '''
+
+        :param filename:
+        :param path:
+        :return:
+        '''
+        file_list = os.listdir(path)
+        pass
 
     def result_check(self):
         '''
