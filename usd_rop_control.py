@@ -38,7 +38,9 @@ def process_rop_nodes(rop_nodes):
 
     if m:
         # 버전 중복 체크 및 버전 업할 건지 확인하는 메소드
-        message = ('USD file with that version already exists. Do you want to overwrite? '
+        message = (f'{rop_node}'
+                   f'\n {output_path} \n'
+                   '\n USD file with that version already exists. Do you want to overwrite? '
                    '\n If you clicked \'No\' button, it sets a version number(+1)')
 
         dd = hou.ui.displayMessage(message, buttons=("Yes", "No", "Quit"))
@@ -54,7 +56,9 @@ def process_rop_nodes(rop_nodes):
 
     else:
         # 에러 체크 함수 버전을 추가하는 방식 or 버전 1로 만들기
-        message = ('There is no version in path, Do you want to create new version?'
+        message = (f'{rop_node}'
+                   f'\n {output_path} \n'
+                   '\n There is no version in path, Do you want to create new version?'
                    '\n If you don\'t want, add USD file version')
 
         bb = hou.ui.displayMessage(message, buttons=("Yes", "Quit"))
