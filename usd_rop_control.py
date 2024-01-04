@@ -38,9 +38,9 @@ class UsdRopControl:
 
         rop_node = rop_nodes.pop()
         self.output_path = rop_node.parm('lopoutput').eval()
-        basename = os.path.basename(self.output_path)
+        self.basename = os.path.basename(self.output_path)
         # 여기서 정규표현식을 사용하면, rop_node를 리스트 형식으로 받으면 안될 거 같다
-        self.version_info = re.search("v\d\d\d", basename)
+        self.version_info = re.search("v\d\d\d", self.basename)
 
         if self.version_info:
             # 버전 중복 체크 및 버전 업할 건지 확인하는 메소드
@@ -91,8 +91,13 @@ class UsdRopControl:
         '''
         print('export_version_up_usd method')
         version_num = self.version_info.group()[1:]
-        self.last_verion = int(version_num)
-        print('yeolhoon :', self.version_num)
+        self.last_verion = int(version_num) + 1
+        filename, usd_extension = self.basename.split('.')
+        print('yeolhoon :', version_num)
+        print(filename, usd_extension)
+        version_padding = str(self.last_verion).rjust(3, '0')
+        update_filename = filename.split(version_num)[0] + version_padding + ('.' + usd_extension)
+        print(update_filename)
 
     def export_new_usd(self):
         '''
