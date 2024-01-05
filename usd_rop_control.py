@@ -6,7 +6,7 @@ import re
 class UsdRopControl:
     def __init__(self):
         self.root = None
-        self.children_node = list
+        self.children_nodes = list
         self.output_path = str
         self.version_info = str
         self.last_version = int
@@ -19,8 +19,9 @@ class UsdRopControl:
         """
         # rop 노드 찾는 부분 더 넣어야 할듯
         self.root = hou.node('/stage/usd_extensions')
-        self.children_node = self.root.children()
-        rop_list = [c for c in self.children_node if c.type().name() == 'usd_rop' and c.inputConnections()]
+        self.children_nodes = self.root.children()
+        print(self.root.path())
+        rop_list = [c for c in self.children_nodes if c.type().name() == 'usd_rop' and c.inputConnections()]
         return rop_list
 
     def process_rop_nodes(self, rop_nodes):
@@ -33,19 +34,18 @@ class UsdRopControl:
 
         """
         if len(rop_nodes) == 0:
-            print('There is no USD rop node')
+            print('There is no USD rop node, Finished')
             return
 
         rop_node = rop_nodes.pop()
         self.output_path = rop_node.parm('lopoutput').eval()
         self.dirname = os.path.dirname(self.output_path)
         self.basename = os.path.basename(self.output_path)
-        # 여기서 정규표현식을 사용하면, rop_node를 리스트 형식으로 받으면 안될 거 같다
         self.version_info = re.search("v\d\d\d", self.basename)
 
         if self.version_info:
-            # 버전 중복 체크 및 버전 업할 건지 확인하는 메소드
             if os.path.isfile(self.output_path):
+                # 버전 중복 체크 및 버전 업할 건지 확인하는 메소드
                 message = (f'{rop_node}'
                            f'\n {self.output_path} \n'
                            '\n USD file with that version already exists. Do you want to overwrite? '
@@ -80,9 +80,11 @@ class UsdRopControl:
                        '\n If you don\'t want, add USD file version')
             message_box = hou.ui.displayMessage(message, buttons=("Yes", "Quit"))
             if message_box == 0:
-                rop_node.parm('lopoutput').set(self.set_new_usd())
-
-                rop_node.parm('execute').pressButton()
+                if os.path.isfile(self.set_new_usd()):
+                    print('USD file with that version already exists')
+                else:
+                    rop_node.parm('lopoutput').set(self.set_new_usd())
+                    rop_node.parm('execute').pressButton()
             elif message_box == 1:
                 pass
         # 결과체크
@@ -139,10 +141,10 @@ class UsdRopControl:
         return last_ver
 
     def result_check(self):
-        '''
+        """
         결과 한번 더 체크해주는 메소드
         :return:
-        '''
+        """
         print('result check')
 
 
